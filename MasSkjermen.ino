@@ -128,7 +128,13 @@ display.setCursor(5, 38); //
 display.print(F("Antall mottat:"));
 
 
+
 display.setCursor(5, 48); // 
+display.print(F("Mottok sist ID:"));
+
+
+
+display.setCursor(5, 58); // 
 display.print(F("IMU Maaling z:"));  display.println(up ? F("YES") : F("no"));
 
 display.display();  // Denne va veldig viktig!
