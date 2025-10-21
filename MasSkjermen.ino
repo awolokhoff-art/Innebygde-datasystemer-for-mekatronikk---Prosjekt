@@ -9,6 +9,17 @@
 //mindre tekst
 #include <Fonts/TomThumb.h> 
 
+//PIN  // ------------------ PIN CONFIG ------------------
+#define JOY_LEFT    18
+#define JOY_RIGHT   17
+#define JOY_CLICK   19
+#define JOY_UP      22
+#define JOY_DOWN    23
+
+
+
+
+
 // ------------------ OLED CONFIG ------------------
 #define OLED_DC     6
 #define OLED_CS     10
@@ -50,6 +61,13 @@ display.print("Bigger text");
 void setup() {
   Serial.begin(9600);
 
+//joystick config
+pinMode(JOY_UP, INPUT_PULLUP);
+
+
+
+//skjerm 
+
   if (!display.begin(SSD1306_SWITCHCAPVCC)) {
     Serial.println(F("ERROR: display.begin() failed."));
     while (true) delay(1000);
@@ -73,7 +91,15 @@ display.clearDisplay();
 
 // Variabler
 
-int imuVerdi = 12;
+
+
+  bool up     = !digitalRead(JOY_UP);
+ 
+
+  
+
+
+
 
 
 // Kant rundt skjermen
@@ -103,11 +129,14 @@ display.print(F("Antall mottat:"));
 
 
 display.setCursor(5, 48); // 
-display.print(F("IMU Maaling z:"));
-display.print(imuVerdi, 2);  // 2 desimaler
+display.print(F("IMU Maaling z:"));  display.println(up ? F("YES") : F("no"));
 
 display.display();  // Denne va veldig viktig!
   
+
+delay(100);
+
+display.clearDisplay();
   
   /*
   // Clear and draw something else for experimentation
