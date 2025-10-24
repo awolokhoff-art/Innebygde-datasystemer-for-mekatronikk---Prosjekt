@@ -126,12 +126,7 @@ void loop() {
 
     tx_count++; // >>> increment after send attempt
   }
-
-
-
-  CAN_message_t m = last_rx; // gjør det til global variabel så den kan leses i display-delen
-  
-  
+CAN_message_t m = last_rx;
   // >>> Handle RX (and echo) in thread context
   if (have_rx) {
     noInterrupts();              // brief critical section
@@ -210,13 +205,13 @@ display.setCursor(5, 28); //
 display.print(F("CAN - Statistikk:"));
 
 display.setCursor(5, 38); // 
+display.print(F("Antall Sendt:")); display.print(tx_count);
+
+display.setCursor(5, 48); // 
 display.print(F("Antall mottat:")); display.print(rx_count);
   
-display.setCursor(5, 48); // 
-display.print(F("Mottok sist ID:"));  display.print("0x"); display.print(m.id, HEX);
-
 display.setCursor(5, 58); // 
-display.print(F("IMU Maaling z:"));  
+display.print(F("Mottok sist ID:"));  display.print("0x"); display.print(m.id, HEX);
 
 
 display.display();  // Denne va veldig viktig!
