@@ -66,9 +66,9 @@ void setup() {
     display.setTextColor(SSD1306_WHITE);
     display.setTextSize(1);
     display.setCursor(0, 0);
-    display.println("Teensy 3.6 CAN demo");
-    display.println("FlexCAN_T4 + OLED");
+    display.println("Funker nu");
     display.display();
+    delay(1000);
   }
 
   // ----- CAN init -----
@@ -205,13 +205,19 @@ display.setCursor(5, 28); //
 display.print(F("CAN - Statistikk:"));
 
 display.setCursor(5, 38); // 
-display.print(F("Antall mottat:")); Serial.print(rx_count);
+display.print(F("Antall mottat:")); display.print(rx_count);
   
 display.setCursor(5, 48); // 
-display.print(F("Mottok sist ID:"));  Serial.print("0x"); Serial.print(m.id, HEX);
+display.print(F("Mottok sist ID:"));  display.print("0x"); display.print(m.id, HEX);
 
 display.setCursor(5, 58); // 
 display.print(F("IMU Maaling z:"));  
+
+
+display.display();  // Denne va veldig viktig!
+  
+
+delay(100); // holder displayet likt i 100ms
 
 
 
