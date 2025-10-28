@@ -150,8 +150,8 @@ int plateX = SCREEN_WIDTH - plateWidth;
     CAN_message_t msgBall;
     msgBall.id = groupNumber + 50;
     msgBall.len = 2;         // to bytes: yBall og xBall
-    msgBall.buf[1] = xBall;
-    msgBall.buf[2] = yBall;
+    msgBall.buf[0] = xBall;
+    msgBall.buf[1] = yBall;
     Can0.write(msgBall);
 
     delay(15); // for jevn bevegelse
