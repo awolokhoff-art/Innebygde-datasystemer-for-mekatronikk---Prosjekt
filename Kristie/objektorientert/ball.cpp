@@ -29,10 +29,6 @@ void Ball::inMotion()
   {
     yVelocity_ = -yVelocity_;
   }
-  if ( leftSide() <= frameLeft_ )
-  {
-    bounce();
-  }
 }
 
 

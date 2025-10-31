@@ -21,33 +21,18 @@ constexpr uint8_t screenHeight{64};
 
 // objekter
 FlexCAN_T4 < CAN0, RX_SIZE_256, TX_SIZE_16 > can0; // Can0-objekt
-CanBusHandler canBusHandler(can0, 6);
+CanBusHandler canBusHandler(can0, 6, 3);
 Adafruit_SSD1306 display(screenWidth, screenHeight, &SPI, oledDC, oledReset, oledCS); 
 Joystick joystick(joyUp, joyDown);   
 Paddle myPaddle(124); 
 Paddle enemyPaddle(0); 
 Ball ball(64);
-bool gameRunning = false;
+PingPongGame pingPongGame(ball, myPaddle, joystick, display);
+
+
 CAN_message_t msgEnemyPosition;
 uint8_t enemyGroupNr = 23;
 
-
-void showStartScreen()
-{
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
-  display.setCursor(15, 25);
-  display.println("Press joystick to start");
-  display.display();
-
-  // vent til spilleren trykker joystick
-  while ( joystick.joyUP() == false && joystick.joyDOWN() == false ) 
-  {}
-  delay(300); 
-  gameRunning = true;
-  ball.reset(); 
-}
 
 
 void setup() 
@@ -57,31 +42,33 @@ void setup()
   can0.setBaudRate(500000);
 
   // starter oled skjerm
-  if (!display.begin(SSD1306_SWITCHCAPVCC)) 
+  /*if (!display.begin(SSD1306_SWITCHCAPVCC)) 
   {
     Serial.println(F("ERROR: display.begin() failed."));
     while (true) delay(1000);
-  }
+  }*/ /////////////////////////////////////////////////////////// Trenger ikke dette når det er pakket inn i pingPongGame.showStartScreen();
 
   //display.clearDisplay(); // superviktig at denne kommer etter det over^ //denne må være med hvis showStartScreen(); blir fjernet
   //display.display();      // superviktig at denne kommer etter det over^ //denne må være med hvis showStartScreen(); blir fjernet
   joystick.init();
   ball.reset();
-  showStartScreen();
+  pingPongGame.showStartScreen();
+  
 }
 
 
 void loop() 
 {
-  if ( !gameRunning )
+  if ( !pingPongGame.gameRunning_ )
   {
-    showStartScreen();
+    pingPongGame.showStartScreen();
     return;
   }
 
   display.clearDisplay();
   myPaddle.updatePositionFromJoystick(joystick);
   myPaddle.draw(display);
+  canBusHandler.sendPaddlePosition(myPaddle);
 
   if ( can0.read(msgEnemyPosition) ) 
   { 
@@ -102,16 +89,21 @@ void loop()
  
   if (ball.isOutRight() || ball.isOutLeft())
   {
-    display.clearDisplay();
-    display.setTextSize(2);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(20, 25);
-    display.println("GAME OVER");
-    display.display();
-    delay(2000);
-    ball.reset();
+    pingPongGame.gameOver();
   }
  
   display.display();
   delay(15); // for jevn bevegelse av ball og plate 
 }
+
+
+
+
+
+
+
+
+
+
+
+
