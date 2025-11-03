@@ -1,39 +1,48 @@
 #include "pingponggame.h"
 
-PingPongGame::PingPongGame(Ball& ball)
+PingPongGame::PingPongGame(Ball& ball, Paddle& paddle, Joystick& joystick, Adafruit_SSD1306& display)
   : ball_{ball}
+  , paddle_{paddle}
+  , joystick_{joystick}
+  , display_{display}
   , gameRunning_{false}
 {}
 
-/*
-void PingPongGame::startup()
+
+void PingPongGame::showStartScreen()
 {
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
-  display.setCursor(15, 25);
-  display.println("Press joystick to start");
-  display.display();
+  if (!display_.begin(SSD1306_SWITCHCAPVCC)) 
+  {
+    Serial.println(F("ERROR: display.begin() failed."));
+    while (true) delay(1000);
+  }
+
+  display_.clearDisplay();
+  display_.setTextSize(1);
+  display_.setTextColor(SSD1306_WHITE);
+  display_.setCursor(15, 25);
+  display_.println("Press joystick to start");
+  display_.display();
 
   // vent til spilleren trykker joystick
-  while (digitalRead(JOY_CLICK) == HIGH) 
+  while ( joystick_.joyUP() == false && joystick_.joyDOWN() == false ) 
   {}
+  delay(300); 
+  gameRunning_ = true;
+  ball_.reset();
+}
 
-  delay(300);
-}*/
 
-
-void PingPongGame::gameOver(Adafruit_SSD1306& display) // når ballen toucher sidekantene (går forbi paddle)
+void PingPongGame::gameOver() // når ballen toucher sidekantene (går forbi paddle)
 {
-  if ( ball_.isOutLeft() || ball_.isOutRight() ) // 
-  {
-    display.clearDisplay();
-    display.setTextSize(2);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(20, 25);
-    display.println("GAME OVER");
-    display.display();
-  }
+    display_.clearDisplay();
+    display_.setTextSize(2);
+    display_.setTextColor(SSD1306_WHITE);
+    display_.setCursor(20, 25);
+    display_.println("GAME OVER");
+    display_.display();
+    delay(2000);
+    ball_.reset();
 }
 
 
