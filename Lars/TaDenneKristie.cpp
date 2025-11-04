@@ -236,7 +236,6 @@ void loop()
     display.clearDisplay();
 
     // <-- NY: Poengtavle øverst -->
-    display.setTextSize(2); // Større tekst for poeng
     display.setTextColor(SSD1306_WHITE);
 
     // Viser P2 (venstre) sin score
