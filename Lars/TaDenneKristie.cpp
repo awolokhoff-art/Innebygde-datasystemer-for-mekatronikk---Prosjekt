@@ -32,13 +32,14 @@ constexpr int SCREEN_HEIGHT = 64;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, OLED_DC, OLED_RESET, OLED_CS);
 
 // ------------------ CAN-konfig ------------------
-const int groupNumber = 6;
-const int idPlatePositionP1 = groupNumber + 20; // 26
-const int idPlatePositionP2 = groupNumber + 21; // 27
-const int idBallPosition    = groupNumber + 50; // 56
-const int idRoleClaim       = groupNumber + 10; // 16
-const int idGameOver        = groupNumber + 51; // 57 // <-- NY ID FOR POENG
+constexpr int groupNumber = 6;
+constexpr int idPlatePositionP1 = groupNumber + 20; // 26
+constexpr int idPlatePositionP2 = groupNumber + 21; // 27
+constexpr int idBallPosition    = groupNumber + 50; // 56
+constexpr int idRoleClaim       = groupNumber + 10; // 16
+constexpr int idGameOver        = groupNumber + 51; // 57 // <-- NY ID FOR POENG
 
+// CAN-bus objekt
 FlexCAN_T4<CAN0, RX_SIZE_256, TX_SIZE_16> Can0;
 
 // ------------------ Spillvariabler ------------------
@@ -255,7 +256,7 @@ void loop()
     // <-- NY: Rolleindikator nederst -->
     display.setTextSize(1);
     display.setCursor(0, SCREEN_HEIGHT - 8); // Plasser nederst
-    if (!isPlayerAssigned) display.print("Press joystick to be P1");
+    if (!isPlayerAssigned) display.print("P JS 1. to be P1");
     else if (isPlayer2) display.print("Spiller 2 (Venstre)");
     else display.print("Spiller 1 (Hoyre)");
 
