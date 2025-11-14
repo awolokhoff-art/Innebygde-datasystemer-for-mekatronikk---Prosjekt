@@ -155,7 +155,7 @@ void handleKeyboardInput() {
         }
         // Manuell Reset
         if ((c == 'r' || c == 'R') && isGameOver) {
-             // Håndteres i main via flaggreset
+           resetGame();  // Håndteres i main via flaggreset
         }
     }
 }
@@ -191,14 +191,20 @@ void resetGame() {
     scoreP1 = 0;
     scoreP2 = 0;
     isGameOver = false;
+    
+    // Tilbakestill fysikk
     xBall = SCREEN_WIDTH / 2;
     yBall = SCREEN_HEIGHT / 2;
     xVelocity = -1; 
     yVelocity = 1;
     platePosP1 = 22;
     platePosP2 = 22;
-}
 
+    // --- NYTT: Send beskjed til Teensy om at spillet er reset ---
+    // Dette vekker Teensy fra "Game Over"-skjermen
+    uint8_t resetData[1] = {1};
+    sendCanMessage(canSocketDescriptor, idResetGame, resetData, 1);
+}
 void updatePhysics() {
     if (isGameOver) return;
 
