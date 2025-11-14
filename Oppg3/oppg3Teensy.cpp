@@ -9,7 +9,7 @@
 
 #include <Arduino.h>
 #include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h> // Rettet skrivefeil her (var 106)
+#include <Adafruit_SSD1306.h> // Rettet skrivefeil her
 #include <SPI.h>
 #include <FlexCAN_T4.h>
 
@@ -26,6 +26,7 @@ constexpr int OLED_RESET  = 5;
 constexpr int SCREEN_WIDTH  = 128;
 constexpr int SCREEN_HEIGHT = 64;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, OLED_DC, OLED_RESET, OLED_CS);
+
 
 // ------------------ CAN-konfig (Må matche Server) ------------------
 constexpr int groupNumber = 6;
@@ -115,19 +116,34 @@ void loop()
     // --- GAME OVER MODUS ---
     drawGameOverScreen();
 
-    // Hvis P1 trykker Reset
+    // Hvis P1 trykker Reset (Joystick-klikk)
     if (digitalRead(JOY_CLICK) == LOW) {
       CAN_message_t resetMsg;
       resetMsg.id = idResetGame;
       resetMsg.len = 1;
       resetMsg.buf[0] = 1; 
-      Can0.write(resetMsg);
+
+      // Send meldingen 3 ganger for å være sikker på at Pi mottar den
+      for(int i=0; i<3; i++) {
+         Can0.write(resetMsg);
+         delay(5);
+      }
       
+      // Vent til knappen slippes
       while(digitalRead(JOY_CLICK) == LOW) delay(10);
-      resetGame(); 
+
+      // --- VIKTIG ENDRING ---
+      // Vi kjører IKKE resetGame() her lenger.
+      // Vi viser tekst og venter på at Raspberry Pi svarer.
+      display.fillRect(0, 50, SCREEN_WIDTH, 14, SSD1306_BLACK); // Tøm bunnen av skjermen
+      display.setCursor(10, 54);
+      display.print("Venter pa server...");
+      display.display();
     }
     
-    receiveCANMessages(); // Lytt etter reset fra RSP3 også
+    // Denne funksjonen vil nå motta reset-signalet fra Pi-en
+    // og kjøre resetGame() automatisk når Pi-en er klar.
+    receiveCANMessages(); 
 
   } else {
     // --- SPILL MODUS ---
@@ -139,7 +155,6 @@ void loop()
 
   delay(10); // 100 Hz oppdatering
 }
-
 // ============================================================================
 // HJELPEFUNKSJONER
 // ============================================================================
@@ -259,3 +274,8 @@ void resetGame() {
   lastMoveState = -1; 
   delay(500);
 }
+
+
+
+
+
