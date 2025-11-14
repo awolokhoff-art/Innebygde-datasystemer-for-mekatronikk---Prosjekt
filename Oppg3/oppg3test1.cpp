@@ -143,23 +143,6 @@ void setNonBlockingKeyboard(bool enable) {
     }
 }
 
-void handleKeyboardInput() {
-    char c;
-    if (read(STDIN_FILENO, &c, 1) > 0) {
-        // P2 Kontroll (Direkte oppdatering av posisjon er ok for P2 lokalt)
-        if (c == 'w' || c == 'W') {
-            if (platePosP2 > 0) platePosP2 -= plateSpeed;
-        }
-        if (c == 's' || c == 'S') {
-            if (platePosP2 < SCREEN_HEIGHT - plateHeight) platePosP2 += plateSpeed;
-        }
-        // Manuell Reset
-        if ((c == 'r' || c == 'R') && isGameOver) {
-           resetGame();  // Håndteres i main via flaggreset
-        }
-    }
-}
-
 // ============================================================================
 // CAN SYSTEM
 // ============================================================================
@@ -265,6 +248,28 @@ void updatePhysics() {
         }
     }
 }
+
+
+
+void handleKeyboardInput() {
+    char c;
+    if (read(STDIN_FILENO, &c, 1) > 0) {
+        // P2 Kontroll (Direkte oppdatering av posisjon er ok for P2 lokalt)
+        if (c == 'w' || c == 'W') {
+            if (platePosP2 > 0) platePosP2 -= plateSpeed;
+        }
+        if (c == 's' || c == 'S') {
+            if (platePosP2 < SCREEN_HEIGHT - plateHeight) platePosP2 += plateSpeed;
+        }
+        // Manuell Reset
+        if ((c == 'r' || c == 'R') && isGameOver) {
+           resetGame();  // Håndteres i main via flaggreset
+        }
+    }
+}
+
+
+
 
 // ============================================================================
 // MAIN
