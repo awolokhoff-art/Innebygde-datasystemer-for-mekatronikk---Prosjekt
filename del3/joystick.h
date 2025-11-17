@@ -6,14 +6,16 @@
 class Joystick
 {
   public:
-  Joystick(const uint8_t up, const uint8_t down);
+  Joystick(const uint8_t up, const uint8_t down, const uint8_t click);
 
-  void init(); 
-  bool joyUP();
-  bool joyDOWN();
+  bool joyUp();
+  bool joyDown();
+  bool joyClick();
 
   private:
   const uint8_t up_;
   const uint8_t down_;
+  const uint8_t click_;
+
 };
 #endif 
