@@ -24,6 +24,8 @@ constexpr uint8_t oledReset{5};
 constexpr uint8_t screenWidth{128};
 constexpr uint8_t screenHeight{64};
 
+bool gameStarted = false;
+
 struct MessageID
 {
   const uint32_t joystickData{25};
@@ -31,7 +33,9 @@ struct MessageID
   const uint32_t paddlePositionPlayer2{27};
   const uint32_t ballPosition{56};
   const uint32_t score{57};    // mottar scorePlayer1 (buf0) og scorePlayer2 (buf1)
-  const uint32_t resetGame{58};
+  const uint32_t idResetRequest{58}; // 58 (Teensy → RPi Teensyen som ber RPi om å resette)
+  const uint32_t idResetAcknowledge{59};// 59 (RPi → Teensy RPi som sender en melding til teensyen om at spillet faktisk blir resatt)
+
 };
 
 MessageID messageID; 
@@ -59,6 +63,8 @@ void updateScore();
 void gameOver();
 void sendJoystickData();
 void readCANInbox(MessageID& messageID);
+void resetDisplay();
+
 
 
 unsigned long lastSendTime{0};          // lagrer tiden (ms) siden siste sendte melding
@@ -83,6 +89,31 @@ void setup()
 
 void loop() 
 {
+
+    // If not started: show "Press to play" and wait for first joystick input.
+  if (!gameStarted) {
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(10, screenHeight/2 - 10);
+    display.print("Press to");
+    display.setCursor(18, screenHeight/2 + 8);
+    display.print("play");
+    display.display();
+
+    // detect any initial press (up/down/click) to start the session
+    if ( joystick.joyUp() || joystick.joyDown() || joystick.joyClick() ) {
+      gameStarted = true;      // enable sending joystick CAN messages
+      initGameState();         // optional: reset render state when starting
+      display.clearDisplay();  // clear the "press to play" text
+      display.display();
+      delay(100);              // small debounce / give user feedback
+    }
+
+    // skip the rest of the loop until started (we still won't send CAN messages)
+    return;
+  }
+
   sendJoystickData(); 
   readCANInbox();
   
@@ -100,27 +131,41 @@ void loop()
   display.display();
 }
 
+void initGameState() {
+  // sensible initial values so the display isn't showing garbage before CAN messages arrive
+  scorePlayer1 = 0;
+  scorePlayer2 = 0;
+  paddleYPosition = (screenHeight - paddleHeight) / 2;
+  paddleYPositionOpponent = (screenHeight - paddleHeight) / 2;
+  ballXCoordinate = screenWidth / 2;
+  ballYCoordinate = screenHeight / 2;
+}
+
 
 
 
 void sendJoystickData()
 {
+  if (!gameStarted) return; // don't send anything before first input
+
   CAN_message_t joystickData;
   joystickData.id = messageID.joystickData;
   joystickData.len = 1;
+
   if ( joystick.joyUp() && millis() - lastSendTime > sendInterval )
-  { 
+  {
     joystickData.buf[0] = 1;
     can0.write(joystickData);
-    lastSendTime = millis(); // lagrer tidspunktet for når meldingen ble sendt
+    lastSendTime = millis();
   }
   if ( joystick.joyDown() && millis() - lastSendTime > sendInterval )
-  { 
+  {
     joystickData.buf[0] = 2;
     can0.write(joystickData);
     lastSendTime = millis();
   }
 }
+
 
 
 void readCANInbox()
@@ -148,6 +193,10 @@ void readCANInbox()
     scorePlayer1 = receivedMessage.buf[0];
     scorePlayer2 = receivedMessage.buf[1]; 
   }
+
+  if(receivedMessage.id == messageID.idResetAcknowledge){
+    resetDisplay();
+  }
 }
 
 
@@ -171,9 +220,41 @@ void gameOver()
   display.setCursor(25, 10);
   if ( scorePlayer1 > scorePlayer2 ) {
     display.print("Teensy wins!");
+display.setCursor(2,20);
+display.print("To replay press 'R'")  ;
   }
   else {
     display.print("Raspberry wins!");
+    display.setCursor(2,20);
+display.print("To replay press 'R'")  ;
   }
+}
+
+
+void resetDisplay()
+{
+  // 1) Hardware reset pulse
+  digitalWrite(oledReset, LOW);
+  delay(10);           // hold low long enough for reset
+  digitalWrite(oledReset, HIGH);
+  delay(50);           // allow display time to boot
+
+  // 2) Re-init the display driver
+  if (!display.begin(SSD1306_SWITCHCAPVCC))
+  {
+    Serial.println(F("ERROR: display.begin() failed during reset."));
+    // If init fails, avoid infinite blocking but notify with serial
+    return;
+  }
+
+  // 3) Clear buffer and update
+  display.clearDisplay();
+  display.display();
+
+  // 4) Reset logical game state (optional but usually desired)
+  initGameState();
+
+  Serial.println("Display & game state reset completed.");
+
 }
 
